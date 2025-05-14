@@ -284,16 +284,17 @@ startButton.addEventListener("click", (e) => {
           touchValues[0].x - touchValues[1].x,
           touchValues[0].y - touchValues[1].y
         ) /
-        Math.hypot(
-          touchValues[0].x -
-            touchValues[0].dx -
-            touchValues[1].x +
-            touchValues[1].dx,
-          touchValues[0].y -
-            touchValues[0].dy -
-            touchValues[1].y +
-            touchValues[1].dy
-        );
+          Math.hypot(
+            touchValues[0].x -
+              touchValues[0].dx -
+              touchValues[1].x +
+              touchValues[1].dx,
+            touchValues[0].y -
+              touchValues[0].dy -
+              touchValues[1].y +
+              touchValues[1].dy
+          ) -
+        1;
 
       zoomAmount = Math.min(Math.max(zoomAmount, -0.1), 0.1);
 
