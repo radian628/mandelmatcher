@@ -197,6 +197,8 @@
   var targetBottomLeft = { x: 0, y: 0 };
   var targetTopRight = { x: 0, y: 0 };
   var targetParams = { x: 0, y: 0 };
+  var winAnimationFrame = 0;
+  var winAnimationRunning = false;
   function lerp(a, b, x) {
     return b * x + a * (1 - x);
   }
@@ -229,8 +231,18 @@
         targetBottomLeft.x - userBottomLeft.x,
         targetTopRight.y - userTopRight.y
       ) < winDist) {
+        winAnimationRunning = true;
+      }
+      if (winAnimationRunning) {
+        winAnimationFrame++;
+      }
+      if (winAnimationFrame == 60) {
         levelIndex++;
         loadLevel(LEVELS[levelIndex]);
+      }
+      if (winAnimationFrame >= 120) {
+        winAnimationRunning = false;
+        winAnimationFrame = 0;
       }
       if (mouseButtonsPressed.get(0)) {
         let deltaX = (prevMousePos.x - mousePos.x) / window.innerHeight * (userTopRight.y - userBottomLeft.y);
@@ -255,7 +267,13 @@
       }
       scrollVel *= 0.75;
       lastScrollPositive = 2 /* None */;
-      const factor = scrollVel;
+      let factor = scrollVel;
+      if (userTopRight.x - userBottomLeft.x > 10) {
+        factor = Math.max(factor, 0);
+      }
+      if (userTopRight.x - userBottomLeft.x < 1e-7) {
+        factor = Math.min(factor, 0);
+      }
       let originX = lerp(userBottomLeft.x, userTopRight.x, 0.5);
       let originY = lerp(userBottomLeft.y, userTopRight.y, 0.5);
       userBottomLeft.x = lerp(userBottomLeft.x, originX, factor);
@@ -270,7 +288,11 @@
       set("2f", "user_bottom_left", userBottomLeft.x, userBottomLeft.y);
       set("2f", "user_top_right", userTopRight.x, userTopRight.y);
       set("1i", "fractal", fractalIndex);
-      set("1f", "iterations", 64);
+      set(
+        "1f",
+        "iterations",
+        Math.ceil(lerp(0, 64, Math.abs((winAnimationFrame - 60) / 60)))
+      );
       set("2f", "resolution", window.innerWidth, window.innerHeight);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       requestAnimationFrame(loop);

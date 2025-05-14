@@ -45,18 +45,26 @@ vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coor
         2.0 * z.x * z.y
       ) + c;
     }
-    return vec4(pow(i / iterations, 0.75), 0.0, 0.0, 0.0);
+    return vec4(pow(i / iterations, 1.2), 0.0, 0.0, 0.0);
   }
 
   return vec4(0.0);
 }
 
 void main(void) {
+  vec4 user_fractal_color = 
+      get_fractal_value(user_params, user_bottom_left, user_top_right, texcoord);
+  vec4 target_fractal_color = 
+      get_fractal_value(target_params, target_bottom_left, target_top_right, texcoord);
+  // float value = 
+  //   user_fractal_color.x + target_fractal_color.x 
+  //   - user_fractal_color.x * target_fractal_color.x * 2.0; 
+
+  float value = abs(user_fractal_color.x - target_fractal_color.x);
+
   fragColor = 
     vec4(
-      get_fractal_value(user_params, user_bottom_left, user_top_right, texcoord).x,
-      get_fractal_value(target_params, target_bottom_left, target_top_right, texcoord).x,
-      0.0,
+      vec3(value),
       1.0
     );
 }
