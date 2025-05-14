@@ -137,6 +137,8 @@ loadLevel(LEVELS[0]);
 // @ts-expect-error this property doesn't exist
 window.printParams = printParams;
 
+const matchFound = document.getElementById("match-found")!;
+
 (async () => {
   const set = (await setupGL())!;
 
@@ -161,12 +163,20 @@ window.printParams = printParams;
       winAnimationFrame++;
     }
 
-    if (winAnimationFrame == 60) {
+    matchFound.style.opacity = (
+      1 - Math.min(Math.max(Math.abs(winAnimationFrame - 120) / 60 - 1, 0), 1)
+    ).toString();
+
+    if (winAnimationFrame == 120) {
       levelIndex++;
       loadLevel(LEVELS[levelIndex]);
+      userBottomLeft = { x: -2, y: -2 };
+      userTopRight = { x: 2, y: 2 };
+      userParams = { x: 0.2, y: -0.6 };
+      userTargetParams = { x: 0.2, y: -0.6 };
     }
 
-    if (winAnimationFrame >= 120) {
+    if (winAnimationFrame >= 240) {
       winAnimationRunning = false;
       winAnimationFrame = 0;
     }
@@ -232,7 +242,13 @@ window.printParams = printParams;
     set(
       "1f",
       "iterations",
-      Math.ceil(lerp(0, 64, Math.abs((winAnimationFrame - 60) / 60)))
+      Math.ceil(
+        lerp(
+          0,
+          64,
+          Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
+        )
+      )
     );
     set("2f", "resolution", window.innerWidth, window.innerHeight);
 

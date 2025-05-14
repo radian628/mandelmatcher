@@ -18,6 +18,20 @@
       left: 0;
       font-family: sans-serif;
     }
+
+    #match-found {
+      font-size: 15vw;
+      color: white;
+      mix-blend-mode: difference;
+      font-weight: bold;
+      font-family: sans-serif;
+      user-select: none;
+      pointer-events: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+    }
   </style>
 </head>
 <body>
@@ -28,5 +42,6 @@
     <p>Mouse to move. Scroll to zoom. Hold "F" for fine adjustments.</p>
     <p id="fractals-matched"></p>
   </div>
+  <div id="match-found" style="opacity: 0">MATCH FOUND</div>
   <script type="module" src="index.js"></script>
 </body>
