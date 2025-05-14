@@ -319,13 +319,14 @@
         userBottomLeft.y += deltaY;
         userTopRight.x += deltaX;
         userTopRight.y += deltaY;
-        const zoomAmount = Math.hypot(
+        let zoomAmount = Math.hypot(
           touchValues[0].x - touchValues[1].x,
           touchValues[0].y - touchValues[1].y
         ) / Math.hypot(
           touchValues[0].x - touchValues[0].dx - touchValues[1].x + touchValues[1].dx,
           touchValues[0].y - touchValues[0].dy - touchValues[1].y + touchValues[1].dy
         );
+        zoomAmount = Math.min(Math.max(zoomAmount, -0.5), 0.5);
         let originX2 = lerp(userBottomLeft.x, userTopRight.x, 0.5);
         let originY2 = lerp(userBottomLeft.y, userTopRight.y, 0.5);
         userBottomLeft.x = lerp(userBottomLeft.x, originX2, zoomAmount);

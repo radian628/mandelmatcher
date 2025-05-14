@@ -278,7 +278,7 @@ startButton.addEventListener("click", (e) => {
       userTopRight.x += deltaX;
       userTopRight.y += deltaY;
 
-      const zoomAmount =
+      let zoomAmount =
         Math.hypot(
           touchValues[0].x - touchValues[1].x,
           touchValues[0].y - touchValues[1].y
@@ -293,6 +293,8 @@ startButton.addEventListener("click", (e) => {
             touchValues[1].y +
             touchValues[1].dy
         );
+
+      zoomAmount = Math.min(Math.max(zoomAmount, -0.5), 0.5);
 
       let originX = lerp(userBottomLeft.x, userTopRight.x, 0.5);
       let originY = lerp(userBottomLeft.y, userTopRight.y, 0.5);
