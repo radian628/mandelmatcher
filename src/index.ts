@@ -167,6 +167,7 @@ function smoothlerp(a, b, x) {
 }
 
 function printParams() {
+  console.log(Math.round(1 / (userTopRight.x - userBottomLeft.x)));
   console.log({
     bottomLeft: { ...userBottomLeft },
     topRight: { ...userTopRight },
@@ -185,8 +186,13 @@ loadLevel(LEVELS[0]);
 
 // @ts-expect-error this property doesn't exist
 window.printParams = printParams;
+// @ts-expect-error nor does this one
+window.printZoomLevels = () => {
+  return LEVELS.map((l) => Math.round(1 / (l.topRight.x - l.bottomLeft.x)));
+};
 
 const matchFound = document.getElementById("match-found")!;
+const levelsComplete = document.getElementById("levels-complete")!;
 
 const info = document.getElementById("info")!;
 const debugBox = document.getElementById("debug")!;
@@ -214,6 +220,9 @@ startButton.addEventListener("click", (e) => {
       ) < winDist
     ) {
       winAnimationRunning = true;
+      levelsComplete.innerText =
+        `${levelIndex + 1} / ${LEVELS.length}` +
+        (levelIndex == LEVELS.length - 1 ? " | YOU WIN!" : "");
     }
 
     if (winAnimationRunning) {

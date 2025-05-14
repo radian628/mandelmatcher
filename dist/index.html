@@ -58,6 +58,12 @@
       translate: -50% -50%;
     }
 
+    #levels-complete {
+      font-size: 4vw;
+      display: flex;
+      justify-content: center;
+    }
+
     #debug {
       position: absolute;
       top: 0;
@@ -76,7 +82,10 @@
     <p>Mouse to move. Scroll to zoom. Match the fractals.</p>
     <button id="start">Start</button>
   </div>
-  <div id="match-found" style="opacity: 0">MATCH FOUND</div>
+  <div id="match-found" style="opacity: 0">
+    MATCH FOUND
+    <div id="levels-complete">0/5</div>
+  </div>
   <div id="debug" style="display: none"></div>
   <script type="module" src="index.js"></script>
 </body>
