@@ -55,26 +55,26 @@ export async function setupGL() {
 let mousePos = { x: 0, y: 0 };
 let mouseButtonsPressed = new Map<number, boolean>();
 
-document.addEventListener("mousemove", (e) => {
+canvas.addEventListener("mousemove", (e) => {
   mousePos = { x: e.clientX, y: e.clientY };
 });
 
-document.addEventListener("mousedown", (e) => {
+canvas.addEventListener("mousedown", (e) => {
   mouseButtonsPressed.set(e.button, true);
 });
 
-document.addEventListener("mouseup", (e) => {
+canvas.addEventListener("mouseup", (e) => {
   for (const btn of mouseButtonsPressed.keys())
     mouseButtonsPressed.set(btn, false);
 });
 
 let fine = false;
 
-document.addEventListener("keydown", (e) => {
+canvas.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "f") fine = true;
 });
 
-document.addEventListener("keyup", (e) => {
+canvas.addEventListener("keyup", (e) => {
   if (e.key.toLowerCase() === "f") fine = false;
 });
 
@@ -91,7 +91,7 @@ enum ScrollType {
 
 let lastScrollPositive = ScrollType.None;
 
-document.addEventListener("wheel", (e) => {
+canvas.addEventListener("wheel", (e) => {
   lastScrollPositive = e.deltaY > 0 ? ScrollType.Positive : ScrollType.Negative;
 });
 
@@ -114,6 +114,14 @@ function lerp(a, b, x) {
   return b * x + a * (1 - x);
 }
 
+function smoothstep(x) {
+  return 3 * x * x - 2 * x * x * x;
+}
+
+function smoothlerp(a, b, x) {
+  return lerp(a, b, smoothstep(x));
+}
+
 function printParams() {
   console.log({
     bottomLeft: { ...userBottomLeft },
@@ -123,13 +131,10 @@ function printParams() {
   });
 }
 
-const fractalsMatched = document.getElementById("fractals-matched")!;
-
 function loadLevel(level: Level) {
   targetBottomLeft = { ...level.bottomLeft };
   targetTopRight = { ...level.topRight };
   targetParams = { ...level.params };
-  fractalsMatched.innerText = `Fractals Matched ${levelIndex}/${LEVELS.length}`;
 }
 
 loadLevel(LEVELS[0]);
@@ -139,13 +144,20 @@ window.printParams = printParams;
 
 const matchFound = document.getElementById("match-found")!;
 
+const info = document.getElementById("info")!;
+
+const startButton = document.getElementById("start")!;
+startButton.addEventListener("click", (e) => {
+  info.style.display = "none";
+});
+
 (async () => {
   const set = (await setupGL())!;
 
   let prevMousePos = { x: 0, y: 0 };
 
   function loop() {
-    const winDist = (userTopRight.x - userBottomLeft.x) / 50;
+    const winDist = (userTopRight.x - userBottomLeft.x) / 20;
     if (
       Math.hypot(
         targetTopRight.x - userTopRight.x,
@@ -163,7 +175,18 @@ const matchFound = document.getElementById("match-found")!;
       winAnimationFrame++;
     }
 
-    matchFound.style.opacity = (
+    if (winAnimationFrame > 0 && winAnimationFrame < 120) {
+      userBottomLeft = {
+        x: lerp(userBottomLeft.x, targetBottomLeft.x, 0.1),
+        y: lerp(userBottomLeft.y, targetBottomLeft.y, 0.1),
+      };
+      userTopRight = {
+        x: lerp(userTopRight.x, targetTopRight.x, 0.1),
+        y: lerp(userTopRight.y, targetTopRight.y, 0.1),
+      };
+    }
+
+    matchFound.style.opacity = smoothstep(
       1 - Math.min(Math.max(Math.abs(winAnimationFrame - 120) / 60 - 1, 0), 1)
     ).toString();
 
@@ -205,9 +228,9 @@ const matchFound = document.getElementById("match-found")!;
     };
 
     if (lastScrollPositive === ScrollType.Positive) {
-      scrollVel += fine ? 0.005 : 0.06;
+      scrollVel += fine ? 0.005 : 0.03;
     } else if (lastScrollPositive === ScrollType.Negative) {
-      scrollVel -= fine ? 0.005 : 0.06;
+      scrollVel -= fine ? 0.005 : 0.03;
     }
     scrollVel *= 0.75;
     lastScrollPositive = ScrollType.None;
@@ -243,7 +266,7 @@ const matchFound = document.getElementById("match-found")!;
       "1f",
       "iterations",
       Math.ceil(
-        lerp(
+        smoothlerp(
           0,
           64,
           Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))

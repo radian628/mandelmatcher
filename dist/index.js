@@ -162,21 +162,21 @@
   }
   var mousePos = { x: 0, y: 0 };
   var mouseButtonsPressed = /* @__PURE__ */ new Map();
-  document.addEventListener("mousemove", (e) => {
+  canvas.addEventListener("mousemove", (e) => {
     mousePos = { x: e.clientX, y: e.clientY };
   });
-  document.addEventListener("mousedown", (e) => {
+  canvas.addEventListener("mousedown", (e) => {
     mouseButtonsPressed.set(e.button, true);
   });
-  document.addEventListener("mouseup", (e) => {
+  canvas.addEventListener("mouseup", (e) => {
     for (const btn of mouseButtonsPressed.keys())
       mouseButtonsPressed.set(btn, false);
   });
   var fine = false;
-  document.addEventListener("keydown", (e) => {
+  canvas.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === "f") fine = true;
   });
-  document.addEventListener("keyup", (e) => {
+  canvas.addEventListener("keyup", (e) => {
     if (e.key.toLowerCase() === "f") fine = false;
   });
   canvas.addEventListener("contextmenu", (e) => {
@@ -184,7 +184,7 @@
     return false;
   });
   var lastScrollPositive = 2 /* None */;
-  document.addEventListener("wheel", (e) => {
+  canvas.addEventListener("wheel", (e) => {
     lastScrollPositive = e.deltaY > 0 ? 1 /* Positive */ : 0 /* Negative */;
   });
   var userBottomLeft = { x: -2, y: -2 };
@@ -202,6 +202,12 @@
   function lerp(a, b, x) {
     return b * x + a * (1 - x);
   }
+  function smoothstep(x) {
+    return 3 * x * x - 2 * x * x * x;
+  }
+  function smoothlerp(a, b, x) {
+    return lerp(a, b, smoothstep(x));
+  }
   function printParams() {
     console.log({
       bottomLeft: { ...userBottomLeft },
@@ -210,21 +216,24 @@
       params: { ...userTargetParams }
     });
   }
-  var fractalsMatched = document.getElementById("fractals-matched");
   function loadLevel(level) {
     targetBottomLeft = { ...level.bottomLeft };
     targetTopRight = { ...level.topRight };
     targetParams = { ...level.params };
-    fractalsMatched.innerText = `Fractals Matched ${levelIndex}/${LEVELS.length}`;
   }
   loadLevel(LEVELS[0]);
   window.printParams = printParams;
   var matchFound = document.getElementById("match-found");
+  var info = document.getElementById("info");
+  var startButton = document.getElementById("start");
+  startButton.addEventListener("click", (e) => {
+    info.style.display = "none";
+  });
   (async () => {
     const set = await setupGL();
     let prevMousePos = { x: 0, y: 0 };
     function loop() {
-      const winDist = (userTopRight.x - userBottomLeft.x) / 50;
+      const winDist = (userTopRight.x - userBottomLeft.x) / 20;
       if (Math.hypot(
         targetTopRight.x - userTopRight.x,
         targetTopRight.y - userTopRight.y
@@ -237,7 +246,19 @@
       if (winAnimationRunning) {
         winAnimationFrame++;
       }
-      matchFound.style.opacity = (1 - Math.min(Math.max(Math.abs(winAnimationFrame - 120) / 60 - 1, 0), 1)).toString();
+      if (winAnimationFrame > 0 && winAnimationFrame < 120) {
+        userBottomLeft = {
+          x: lerp(userBottomLeft.x, targetBottomLeft.x, 0.1),
+          y: lerp(userBottomLeft.y, targetBottomLeft.y, 0.1)
+        };
+        userTopRight = {
+          x: lerp(userTopRight.x, targetTopRight.x, 0.1),
+          y: lerp(userTopRight.y, targetTopRight.y, 0.1)
+        };
+      }
+      matchFound.style.opacity = smoothstep(
+        1 - Math.min(Math.max(Math.abs(winAnimationFrame - 120) / 60 - 1, 0), 1)
+      ).toString();
       if (winAnimationFrame == 120) {
         levelIndex++;
         loadLevel(LEVELS[levelIndex]);
@@ -267,9 +288,9 @@
         y: lerp(userParams.y, userTargetParams.y, 0.3)
       };
       if (lastScrollPositive === 1 /* Positive */) {
-        scrollVel += fine ? 5e-3 : 0.06;
+        scrollVel += fine ? 5e-3 : 0.03;
       } else if (lastScrollPositive === 0 /* Negative */) {
-        scrollVel -= fine ? 5e-3 : 0.06;
+        scrollVel -= fine ? 5e-3 : 0.03;
       }
       scrollVel *= 0.75;
       lastScrollPositive = 2 /* None */;
@@ -298,7 +319,7 @@
         "1f",
         "iterations",
         Math.ceil(
-          lerp(
+          smoothlerp(
             0,
             64,
             Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
