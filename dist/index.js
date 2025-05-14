@@ -249,9 +249,9 @@
         y: lerp(userParams.y, userTargetParams.y, 0.3)
       };
       if (lastScrollPositive === 1 /* Positive */) {
-        scrollVel += fine ? 0.01 : 0.1;
+        scrollVel += fine ? 5e-3 : 0.06;
       } else if (lastScrollPositive === 0 /* Negative */) {
-        scrollVel -= fine ? 0.01 : 0.1;
+        scrollVel -= fine ? 5e-3 : 0.06;
       }
       scrollVel *= 0.75;
       lastScrollPositive = 2 /* None */;

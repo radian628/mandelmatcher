@@ -179,9 +179,9 @@ window.printParams = printParams;
     };
 
     if (lastScrollPositive === ScrollType.Positive) {
-      scrollVel += fine ? 0.01 : 0.1;
+      scrollVel += fine ? 0.005 : 0.06;
     } else if (lastScrollPositive === ScrollType.Negative) {
-      scrollVel -= fine ? 0.01 : 0.1;
+      scrollVel -= fine ? 0.005 : 0.06;
     }
     scrollVel *= 0.75;
     lastScrollPositive = ScrollType.None;
