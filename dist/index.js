@@ -256,6 +256,7 @@
   window.printParams = printParams;
   var matchFound = document.getElementById("match-found");
   var info = document.getElementById("info");
+  var debugBox = document.getElementById("debug");
   var startButton = document.getElementById("start");
   startButton.addEventListener("click", (e) => {
     info.style.display = "none";
@@ -326,13 +327,16 @@
           touchValues[0].x - touchValues[0].dx - touchValues[1].x + touchValues[1].dx,
           touchValues[0].y - touchValues[0].dy - touchValues[1].y + touchValues[1].dy
         );
-        zoomAmount = Math.min(Math.max(zoomAmount, -0.5), 0.5);
+        zoomAmount = Math.min(Math.max(zoomAmount, -0.1), 0.1);
         let originX2 = lerp(userBottomLeft.x, userTopRight.x, 0.5);
         let originY2 = lerp(userBottomLeft.y, userTopRight.y, 0.5);
         userBottomLeft.x = lerp(userBottomLeft.x, originX2, zoomAmount);
         userBottomLeft.y = lerp(userBottomLeft.y, originY2, zoomAmount);
         userTopRight.x = lerp(userTopRight.x, originX2, zoomAmount);
         userTopRight.y = lerp(userTopRight.y, originY2, zoomAmount);
+        debugBox.innerText = `zoom: ${zoomAmount}, touchvalues: ${JSON.stringify(
+          touchValues
+        )}`;
         touchValues[0].dx = 0;
         touchValues[0].dy = 0;
         touchValues[1].dx = 0;

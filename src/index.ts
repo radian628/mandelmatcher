@@ -189,6 +189,7 @@ window.printParams = printParams;
 const matchFound = document.getElementById("match-found")!;
 
 const info = document.getElementById("info")!;
+const debugBox = document.getElementById("debug")!;
 
 const startButton = document.getElementById("start")!;
 startButton.addEventListener("click", (e) => {
@@ -294,7 +295,7 @@ startButton.addEventListener("click", (e) => {
             touchValues[1].dy
         );
 
-      zoomAmount = Math.min(Math.max(zoomAmount, -0.5), 0.5);
+      zoomAmount = Math.min(Math.max(zoomAmount, -0.1), 0.1);
 
       let originX = lerp(userBottomLeft.x, userTopRight.x, 0.5);
       let originY = lerp(userBottomLeft.y, userTopRight.y, 0.5);
@@ -304,6 +305,10 @@ startButton.addEventListener("click", (e) => {
 
       userTopRight.x = lerp(userTopRight.x, originX, zoomAmount);
       userTopRight.y = lerp(userTopRight.y, originY, zoomAmount);
+
+      debugBox.innerText = `zoom: ${zoomAmount}, touchvalues: ${JSON.stringify(
+        touchValues
+      )}`;
 
       touchValues[0].dx = 0;
       touchValues[0].dy = 0;
