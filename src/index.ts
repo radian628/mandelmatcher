@@ -83,6 +83,50 @@ canvas.addEventListener("contextmenu", (e) => {
   return false;
 });
 
+const touches = new Map<
+  number,
+  {
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+  }
+>();
+
+canvas.addEventListener("touchstart", (e) => {
+  for (const t of e.touches) {
+    touches.set(t.identifier, { x: t.clientX, y: t.clientY, dx: 0, dy: 0 });
+  }
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  for (const t of e.touches) {
+    const oldTouch = touches.get(t.identifier);
+    if (oldTouch) {
+      touches.set(t.identifier, {
+        x: t.clientX,
+        y: t.clientY,
+        dx: t.clientX - oldTouch.x + oldTouch.dx,
+        dy: t.clientY - oldTouch.y + oldTouch.dy,
+      });
+    } else {
+      touches.set(t.identifier, { x: t.clientX, y: t.clientY, dx: 0, dy: 0 });
+    }
+  }
+});
+
+canvas.addEventListener("touchend", (e) => {
+  for (const t of e.changedTouches) {
+    touches.delete(t.identifier);
+  }
+});
+
+canvas.addEventListener("touchcancel", (e) => {
+  for (const t of touches.keys()) {
+    touches.delete(t);
+  }
+});
+
 enum ScrollType {
   Negative,
   Positive,
@@ -202,6 +246,67 @@ startButton.addEventListener("click", (e) => {
     if (winAnimationFrame >= 240) {
       winAnimationRunning = false;
       winAnimationFrame = 0;
+    }
+
+    const touchValues = [...touches.values()];
+
+    if (touchValues.length === 1) {
+      let deltaX =
+        -(touchValues[0].dx / window.innerHeight) *
+        (userTopRight.y - userBottomLeft.y);
+      let deltaY =
+        (touchValues[0].dy / window.innerHeight) *
+        (userTopRight.y - userBottomLeft.y);
+
+      userBottomLeft.x += deltaX;
+      userBottomLeft.y += deltaY;
+      userTopRight.x += deltaX;
+      userTopRight.y += deltaY;
+
+      touchValues[0].dx = 0;
+      touchValues[0].dy = 0;
+    } else if (touchValues.length === 2) {
+      let deltaX =
+        -((touchValues[0].dx + touchValues[1].dx) / 2 / window.innerHeight) *
+        (userTopRight.y - userBottomLeft.y);
+      let deltaY =
+        ((touchValues[0].dy + touchValues[1].dy) / 2 / window.innerHeight) *
+        (userTopRight.y - userBottomLeft.y);
+
+      userBottomLeft.x += deltaX;
+      userBottomLeft.y += deltaY;
+      userTopRight.x += deltaX;
+      userTopRight.y += deltaY;
+
+      const zoomAmount =
+        Math.hypot(
+          touchValues[0].x - touchValues[1].x,
+          touchValues[0].y - touchValues[1].y
+        ) /
+        Math.hypot(
+          touchValues[0].x -
+            touchValues[0].dx -
+            touchValues[1].x +
+            touchValues[1].dx,
+          touchValues[0].y -
+            touchValues[0].dy -
+            touchValues[1].y +
+            touchValues[1].dy
+        );
+
+      let originX = lerp(userBottomLeft.x, userTopRight.x, 0.5);
+      let originY = lerp(userBottomLeft.y, userTopRight.y, 0.5);
+
+      userBottomLeft.x = lerp(userBottomLeft.x, originX, zoomAmount);
+      userBottomLeft.y = lerp(userBottomLeft.y, originY, zoomAmount);
+
+      userTopRight.x = lerp(userTopRight.x, originX, zoomAmount);
+      userTopRight.y = lerp(userTopRight.y, originY, zoomAmount);
+
+      touchValues[0].dx = 0;
+      touchValues[0].dy = 0;
+      touchValues[1].dx = 0;
+      touchValues[1].dy = 0;
     }
 
     if (mouseButtonsPressed.get(0)) {
