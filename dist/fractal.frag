@@ -16,6 +16,7 @@ uniform vec2 target_top_right;
 
 uniform int fractal;
 uniform float iterations;
+uniform float hue_offset;
 
 vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coord) {
   vec2 coord = _coord * (top_right - bottom_left) + bottom_left;
@@ -51,6 +52,16 @@ vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coor
   return vec4(0.0);
 }
 
+float PI = 3.14159265;
+
+vec3 sinhue(float hue) {
+  return vec3(
+    sin(2.0 * PI * hue),
+    sin(2.0 * PI * (hue + 0.33333333)),
+    sin(2.0 * PI * (hue + 0.66666667))
+  ) * 0.15 + 0.5;
+}
+
 void main(void) {
   vec4 user_fractal_color = 
       get_fractal_value(user_params, user_bottom_left, user_top_right, texcoord);
@@ -60,11 +71,19 @@ void main(void) {
   //   user_fractal_color.x + target_fractal_color.x 
   //   - user_fractal_color.x * target_fractal_color.x * 2.0; 
 
-  float value = abs(user_fractal_color.x - target_fractal_color.x);
+  float value1 = user_fractal_color.x;
+  float value2 = target_fractal_color.x;
+
+
+  vec3 value = abs(
+    sinhue(value1 + hue_offset * 1.23456) * value1 * value1 * 2.0 - sinhue(value2 - hue_offset) * value2 * value2 * 2.0
+    // vec3(value1 * 4.0, value1 * 2.0, value1)
+    // - vec3(value2 * 1.0, value2 * 2.0, value2 * 4.0)
+  );
 
   fragColor = 
     vec4(
-      vec3(value),
+      value,
       1.0
     );
 }

@@ -111,6 +111,83 @@
         y: -0.004282655246252709
       }
     },
+    // add some more levels here between zoom levels 4 and 14
+    {
+      bottomLeft: {
+        x: 0.047514078338310714,
+        y: 0.5813964071711524
+      },
+      topRight: {
+        x: 0.22281609140514436,
+        y: 0.7566984202379872
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -1.5308643358316392,
+        y: -0.25933954441185697
+      },
+      topRight: {
+        x: -1.320939534620107,
+        y: -0.049414743200325115
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: 0.3267041411059802,
+        y: 0.5797128874572623
+      },
+      topRight: {
+        x: 0.4374003189766384,
+        y: 0.6904090653279197
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -0.7312708839988104,
+        y: -0.509526368359592
+      },
+      topRight: {
+        x: -0.6430550187428722,
+        y: -0.42131050310364987
+      },
+      fractalIndex: 1,
+      params: {
+        x: -0.16057585825027687,
+        y: 0.20342612419700212
+      }
+    },
+    // harder stuff
+    {
+      bottomLeft: {
+        x: -0.29217933711418237,
+        y: 0.8075503227659846
+      },
+      topRight: {
+        x: -0.21715530646090014,
+        y: 0.8825743534192677
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
     {
       bottomLeft: {
         x: -0.6091914677639261,
@@ -169,6 +246,66 @@
       params: {
         x: 0.2,
         y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: 0.1614078112917602,
+        y: -0.6094354894280556
+      },
+      topRight: {
+        x: 0.20347496263492398,
+        y: -0.5673683380848925
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -0.8375141320941696,
+        y: 0.22917754201213877
+      },
+      topRight: {
+        x: -0.8249876431805833,
+        y: 0.24170403092572515
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.34883720930232553,
+        y: -0.25267665952890794
+      }
+    },
+    {
+      bottomLeft: {
+        x: -1.767772771788433,
+        y: 0.011721642294182776
+      },
+      topRight: {
+        x: -1.7582273846389225,
+        y: 0.02126702944369282
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -0.20039358578346736,
+        y: 1.0982350414761437
+      },
+      topRight: {
+        x: -0.1963110863991057,
+        y: 1.102317540860506
+      },
+      fractalIndex: 1,
+      params: {
+        x: -0.01218161683277963,
+        y: 0.008565310492505418
       }
     }
     // {
@@ -378,6 +515,32 @@
   window.printZoomLevels = () => {
     return LEVELS.map((l) => Math.round(1 / (l.topRight.x - l.bottomLeft.x)));
   };
+  function draw(w, h, set) {
+    set("2f", "target_params", targetParams.x, targetParams.y);
+    set("2f", "target_bottom_left", targetBottomLeft.x, targetBottomLeft.y);
+    set("2f", "target_top_right", targetTopRight.x, targetTopRight.y);
+    set("2f", "user_params", userParams.x, userParams.y);
+    set("2f", "user_bottom_left", userBottomLeft.x, userBottomLeft.y);
+    set("2f", "user_top_right", userTopRight.x, userTopRight.y);
+    set("1i", "fractal", fractalIndex);
+    set(
+      "1f",
+      "iterations",
+      Math.max(
+        1,
+        Math.ceil(
+          smoothlerp(
+            0,
+            64,
+            Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
+          )
+        )
+      )
+    );
+    set("2f", "resolution", w, h);
+    set("1f", "hue_offset", hueOffset);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
   var matchFound = document.getElementById("match-found");
   var levelsComplete = document.getElementById("levels-complete");
   var info = document.getElementById("info");
@@ -386,11 +549,44 @@
   startButton.addEventListener("click", (e) => {
     info.style.display = "none";
   });
+  var hueOffset = -0.1;
   (async () => {
     const set = await setupGL();
+    let stopLooping = false;
+    window.printAllLevels = () => {
+      stopLooping = true;
+      const gridSize = Math.ceil(Math.sqrt(LEVELS.length));
+      for (let i = 0; i < LEVELS.length; i++) {
+        const lvl = LEVELS[i];
+        const gridX = i % gridSize;
+        const gridY = gridSize - Math.floor(i / gridSize) - 1;
+        const gridYFlipped = Math.floor(i / gridSize);
+        const gridWidth = Math.floor(window.innerWidth / gridSize);
+        const gridHeight = Math.floor(window.innerHeight / gridSize);
+        gl.viewport(gridX * gridWidth, gridY * gridHeight, gridWidth, gridHeight);
+        loadLevel(lvl);
+        userBottomLeft = { x: 100, y: 100 };
+        userTopRight = { x: 100, y: 100 };
+        draw(gridWidth, gridHeight, set);
+        const label = document.createElement("div");
+        label.innerHTML = `zoom: ${Math.round(
+          1 / (targetTopRight.x - targetBottomLeft.x)
+        )}`;
+        label.style.position = "absolute";
+        label.style.color = "white";
+        label.style.padding = "10px";
+        label.style.backgroundColor = "black";
+        label.style.fontFamily = "sans-serif";
+        label.style.top = `${(gridYFlipped + 0.1) * gridHeight}px`;
+        label.style.left = `${(gridX + 0.1) * gridWidth}px`;
+        document.body.appendChild(label);
+      }
+    };
     let prevMousePos = { x: 0, y: 0 };
     function loop() {
-      const winDist = (userTopRight.x - userBottomLeft.x) / 20;
+      hueOffset = hueOffset + 1e-4;
+      if (stopLooping) return;
+      const winDist = (userTopRight.x - userBottomLeft.x) / 12;
       if (Math.hypot(
         targetTopRight.x - userTopRight.x,
         targetTopRight.y - userTopRight.y
@@ -505,26 +701,7 @@
       userTopRight.x = lerp(userTopRight.x, originX, factor);
       userTopRight.y = lerp(userTopRight.y, originY, factor);
       prevMousePos = mousePos;
-      set("2f", "target_params", targetParams.x, targetParams.y);
-      set("2f", "target_bottom_left", targetBottomLeft.x, targetBottomLeft.y);
-      set("2f", "target_top_right", targetTopRight.x, targetTopRight.y);
-      set("2f", "user_params", userParams.x, userParams.y);
-      set("2f", "user_bottom_left", userBottomLeft.x, userBottomLeft.y);
-      set("2f", "user_top_right", userTopRight.x, userTopRight.y);
-      set("1i", "fractal", fractalIndex);
-      set(
-        "1f",
-        "iterations",
-        Math.ceil(
-          smoothlerp(
-            0,
-            64,
-            Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
-          )
-        )
-      );
-      set("2f", "resolution", window.innerWidth, window.innerHeight);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      draw(window.innerWidth, window.innerHeight, set);
       requestAnimationFrame(loop);
     }
     loop();

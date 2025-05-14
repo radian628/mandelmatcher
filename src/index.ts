@@ -191,6 +191,38 @@ window.printZoomLevels = () => {
   return LEVELS.map((l) => Math.round(1 / (l.topRight.x - l.bottomLeft.x)));
 };
 
+function draw(
+  w: number,
+  h: number,
+  set: Exclude<Awaited<ReturnType<typeof setupGL>>, undefined>
+) {
+  set("2f", "target_params", targetParams.x, targetParams.y);
+  set("2f", "target_bottom_left", targetBottomLeft.x, targetBottomLeft.y);
+  set("2f", "target_top_right", targetTopRight.x, targetTopRight.y);
+  set("2f", "user_params", userParams.x, userParams.y);
+  set("2f", "user_bottom_left", userBottomLeft.x, userBottomLeft.y);
+  set("2f", "user_top_right", userTopRight.x, userTopRight.y);
+  set("1i", "fractal", fractalIndex);
+  set(
+    "1f",
+    "iterations",
+    Math.max(
+      1,
+      Math.ceil(
+        smoothlerp(
+          0,
+          64,
+          Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
+        )
+      )
+    )
+  );
+  set("2f", "resolution", w, h);
+  set("1f", "hue_offset", hueOffset);
+
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
 const matchFound = document.getElementById("match-found")!;
 const levelsComplete = document.getElementById("levels-complete")!;
 
@@ -202,13 +234,52 @@ startButton.addEventListener("click", (e) => {
   info.style.display = "none";
 });
 
+let hueOffset = -0.1;
+
 (async () => {
   const set = (await setupGL())!;
+
+  let stopLooping = false;
+
+  // @ts-expect-error and this one too lol
+  window.printAllLevels = () => {
+    stopLooping = true;
+    const gridSize = Math.ceil(Math.sqrt(LEVELS.length));
+
+    for (let i = 0; i < LEVELS.length; i++) {
+      const lvl = LEVELS[i];
+
+      const gridX = i % gridSize;
+      const gridY = gridSize - Math.floor(i / gridSize) - 1;
+      const gridYFlipped = Math.floor(i / gridSize);
+      const gridWidth = Math.floor(window.innerWidth / gridSize);
+      const gridHeight = Math.floor(window.innerHeight / gridSize);
+      gl.viewport(gridX * gridWidth, gridY * gridHeight, gridWidth, gridHeight);
+      loadLevel(lvl);
+      userBottomLeft = { x: 100, y: 100 };
+      userTopRight = { x: 100, y: 100 };
+      draw(gridWidth, gridHeight, set);
+      const label = document.createElement("div");
+      label.innerHTML = `zoom: ${Math.round(
+        1 / (targetTopRight.x - targetBottomLeft.x)
+      )}`;
+      label.style.position = "absolute";
+      label.style.color = "white";
+      label.style.padding = "10px";
+      label.style.backgroundColor = "black";
+      label.style.fontFamily = "sans-serif";
+      label.style.top = `${(gridYFlipped + 0.1) * gridHeight}px`;
+      label.style.left = `${(gridX + 0.1) * gridWidth}px`;
+      document.body.appendChild(label);
+    }
+  };
 
   let prevMousePos = { x: 0, y: 0 };
 
   function loop() {
-    const winDist = (userTopRight.x - userBottomLeft.x) / 20;
+    hueOffset = hueOffset + 0.0001;
+    if (stopLooping) return;
+    const winDist = (userTopRight.x - userBottomLeft.x) / 12;
     if (
       Math.hypot(
         targetTopRight.x - userTopRight.x,
@@ -376,28 +447,8 @@ startButton.addEventListener("click", (e) => {
 
     prevMousePos = mousePos;
 
-    // set uniforms to something sensible
-    set("2f", "target_params", targetParams.x, targetParams.y);
-    set("2f", "target_bottom_left", targetBottomLeft.x, targetBottomLeft.y);
-    set("2f", "target_top_right", targetTopRight.x, targetTopRight.y);
-    set("2f", "user_params", userParams.x, userParams.y);
-    set("2f", "user_bottom_left", userBottomLeft.x, userBottomLeft.y);
-    set("2f", "user_top_right", userTopRight.x, userTopRight.y);
-    set("1i", "fractal", fractalIndex);
-    set(
-      "1f",
-      "iterations",
-      Math.ceil(
-        smoothlerp(
-          0,
-          64,
-          Math.abs(Math.max(0, Math.abs((winAnimationFrame - 120) / 60) - 1))
-        )
-      )
-    );
-    set("2f", "resolution", window.innerWidth, window.innerHeight);
+    draw(window.innerWidth, window.innerHeight, set);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(loop);
   }
 
