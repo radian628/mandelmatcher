@@ -228,6 +228,8 @@ function draw(
   );
   set("2f", "resolution", w, h);
   set("1f", "hue_offset", hueOffset);
+  // set("1f", "threshold", Math.sin(animationTime * 0.05) * 1096 + 1100);
+  set("1f", "threshold", 4.0);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
@@ -244,6 +246,8 @@ startButton.addEventListener("click", (e) => {
 });
 
 let hueOffset = -0.1;
+
+let animationTime = 0;
 
 (async () => {
   const set = (await setupGL())!;
@@ -286,6 +290,7 @@ let hueOffset = -0.1;
   let prevMousePos = { x: 0, y: 0 };
 
   function loop() {
+    animationTime++;
     hueOffset = hueOffset + 0.0001;
     if (stopLooping) return;
     const winDist = (userTopRight.x - userBottomLeft.x) / 12;

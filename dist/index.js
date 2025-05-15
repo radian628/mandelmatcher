@@ -586,6 +586,7 @@
     );
     set("2f", "resolution", w, h);
     set("1f", "hue_offset", hueOffset);
+    set("1f", "threshold", 4);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
   var matchFound = document.getElementById("match-found");
@@ -597,6 +598,7 @@
     info.style.display = "none";
   });
   var hueOffset = -0.1;
+  var animationTime = 0;
   (async () => {
     const set = await setupGL();
     let stopLooping = false;
@@ -631,6 +633,7 @@
     };
     let prevMousePos = { x: 0, y: 0 };
     function loop() {
+      animationTime++;
       hueOffset = hueOffset + 1e-4;
       if (stopLooping) return;
       const winDist = (userTopRight.x - userBottomLeft.x) / 12;

@@ -18,6 +18,8 @@ uniform int fractal;
 uniform float iterations;
 uniform float hue_offset;
 
+uniform float threshold;
+
 vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coord) {
   vec2 coord = _coord * (top_right - bottom_left) + bottom_left;
 
@@ -40,7 +42,7 @@ vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coor
     vec2 z = vec2(0.0);
 
     float i = 0.0;
-    for (i = 0.0; i < iterations && dot(z, z) < 4.0; i++) {
+    for (i = 0.0; i < iterations && dot(z, z) < threshold; i++) {
       z = vec2(
         z.x * z.x - z.y * z.y,
         2.0 * z.x * z.y
