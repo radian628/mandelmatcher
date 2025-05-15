@@ -199,6 +199,11 @@ window.printParams = printParams;
 window.printZoomLevels = () => {
   return LEVELS.map((l) => Math.round(1 / (l.topRight.x - l.bottomLeft.x)));
 };
+// @ts-expect-error yeah
+window.loadLevelIndex = (index: number) => {
+  loadLevel(LEVELS[index]);
+  levelIndex = index;
+};
 
 function draw(
   w: number,

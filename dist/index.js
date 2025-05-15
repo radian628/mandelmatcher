@@ -307,6 +307,127 @@
         x: -0.01218161683277963,
         y: 0.008565310492505418
       }
+    },
+    // ok this stuff im intentionally making difficult lmao
+    {
+      bottomLeft: {
+        x: -0.4975743875044242,
+        y: 0.6255659336299683
+      },
+      topRight: {
+        x: -0.4905725306284329,
+        y: 0.6325677905059593
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -1.3854368508960502,
+        y: -0.03319120160045996
+      },
+      topRight: {
+        x: -1.3702725425998266,
+        y: -0.018026893304237075
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: 0.3281951514017246,
+        y: -0.043233928890188324
+      },
+      topRight: {
+        x: 0.3305850998042167,
+        y: -0.040843980487696004
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: 0.423856865600202,
+        y: 0.3388219086560594
+      },
+      topRight: {
+        x: 0.4283982167562747,
+        y: 0.3433632598121322
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -0.5578105689329734,
+        y: -0.6480566527297372
+      },
+      topRight: {
+        x: -0.5551302686551465,
+        y: -0.6453763524519139
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -48589924650560003e-20,
+        y: 0.7927371880210792
+      },
+      topRight: {
+        x: 28688237081409023e-20,
+        y: 0.7935099696384382
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.3045404208194906,
+        y: 0.37044967880085644
+      }
+    },
+    {
+      bottomLeft: {
+        x: -1.4377465903502502,
+        y: 0.0012340326474489767
+      },
+      topRight: {
+        x: -1.435141154523501,
+        y: 0.0038394684741987436
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.2,
+        y: -0.6
+      }
+    },
+    {
+      bottomLeft: {
+        x: -0.7706819950131055,
+        y: -0.11786057656758708
+      },
+      topRight: {
+        x: -0.7672803772670385,
+        y: -0.1144589588215196
+      },
+      fractalIndex: 1,
+      params: {
+        x: 0.28682170542635665,
+        y: -0.06638115631691643
+      }
     }
     // {
     //   bottomLeft: {
@@ -562,6 +683,10 @@
   window.printParams = printParams;
   window.printZoomLevels = () => {
     return LEVELS.map((l) => Math.round(1 / (l.topRight.x - l.bottomLeft.x)));
+  };
+  window.loadLevelIndex = (index) => {
+    loadLevel(LEVELS[index]);
+    levelIndex = index;
   };
   function draw(w, h, set) {
     set("2f", "target_params", targetParams.x, targetParams.y);
