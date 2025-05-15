@@ -394,6 +394,7 @@
       const file = await fetch(url);
       const buf = await file.arrayBuffer();
       audio = await ac.decodeAudioData(buf);
+      soundCache.set(url, audio);
     }
     return audio;
   }
