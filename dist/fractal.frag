@@ -19,6 +19,77 @@ uniform float iterations;
 uniform float hue_offset;
 
 uniform float threshold;
+uniform float animation_frame;
+
+float sphereDistance(vec3 p) {
+  
+  float dist = distance(p, vec3(0.0)) - 1.0;
+  
+  for (float i = 0.0; i < 9.0; i++) {
+      float scaleFactor = pow(0.5, i);
+      vec3 p2 = mod(p + vec3(animation_frame * 0.001), 0.5 * scaleFactor) - 0.25 * scaleFactor;
+      dist = max(dist,
+          -(distance(p2, vec3(0.0)) - 0.25 * scaleFactor));
+  }
+  
+  return dist;
+}
+
+vec4 raymarch(vec2 bottom_left, vec2 top_right) {
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = texcoord;
+
+    float range = top_right.x - bottom_left.x;
+    vec2 avg = (bottom_left + top_right) * 0.5;
+
+    float rotY = avg.x * -1.0;
+    float rotX = avg.y * 1.0;
+    
+    // vec3 particlePosition = 
+    //   vec3(
+    //     0.0, 0.0, -1.0 - range 
+    //   ) + vec3((bottom_left + top_right) * 0.5, 0.0);
+
+    mat3 rotation_matrix = mat3(
+      cos(rotY), 0.0, sin(rotY),
+      0.0, 1.0, 0.0,
+      -sin(rotY), 0.0, cos(rotY) 
+    ) * mat3(
+      1.0, 0.0, 0.0,
+      0.0, cos(rotX), -sin(rotX),
+      0.0, sin(rotX), cos(rotX)
+    );
+
+    vec3 particlePosition = vec3(0.0, 0.0, -1.0 - range * 0.5) * rotation_matrix;
+    
+    vec3 particleDirection = 
+        vec3(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 1.0);
+    particleDirection = normalize(particleDirection) * rotation_matrix;
+    
+    for (int i = 0; i < 64; i++) {
+        particlePosition +=
+            particleDirection * sphereDistance(particlePosition);
+        if (sphereDistance(particlePosition) < 0.001) {
+            
+            vec3 normal = normalize(
+               vec3(
+                   sphereDistance(particlePosition + vec3(0.001, 0.0, 0.0))
+                       - sphereDistance(particlePosition),
+                   sphereDistance(particlePosition + vec3(0.0, 0.001, 0.0))
+                       - sphereDistance(particlePosition),
+                   sphereDistance(particlePosition + vec3(0.0, 0.0, 0.001))
+                       - sphereDistance(particlePosition)
+               )
+            );
+
+            //fragColor = vec4(dot(normal, vec3(1.0, 0.0, 0.0)), 0.0, 0.0, 1.0);
+            return  vec4(vec3(pow(float(i) / 64.0, 0.1)), 1.0);
+        }
+    }
+    
+    return vec4(0.0);
+    
+}
 
 vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coord) {
   vec2 coord = _coord * (top_right - bottom_left) + bottom_left;
@@ -49,6 +120,8 @@ vec4 get_fractal_value(vec2 params, vec2 bottom_left, vec2 top_right, vec2 _coor
       ) + c;
     }
     return vec4(pow(i / iterations, 1.2), 0.0, 0.0, 0.0);
+  } else if (fractal == 2) {
+    return raymarch(bottom_left, top_right);
   }
 
   return vec4(0.0);

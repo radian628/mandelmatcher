@@ -72,6 +72,19 @@
       font-size: 250%;
       color: white;
     }
+
+    #settings {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #settings input,
+    #settings select {
+      margin-bottom: 10px;
+      border: 1px solid white;
+      background-color: black;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +94,19 @@
     <p>The Fractal Matching Game</p>
     <p>Mouse to move. Scroll to zoom. Match the fractals.</p>
     <button id="start">Start</button>
+    <br />
+    <div id="settings">
+      <label>Seed</label>
+      <input type="text" id="seed" placeholder="leave blank for random" />
+      <label>Difficulty</label>
+      <select id="difficulty" value="2">
+        <option value="1">Easy</option>
+        <option value="2" selected>Medium</option>
+        <option value="3">Hard</option>
+        <option value="4">Expert</option>
+        <option value="5">Master</option>
+      </select>
+    </div>
   </div>
   <div id="match-found" style="opacity: 0">
     MATCH FOUND

@@ -5,6 +5,8 @@ import {
 } from "./gl-lib";
 import { Level, LEVELS } from "./levels";
 import { loopSound, playSound } from "./sound";
+import { findPointOnEdgeOfMandelbrot } from "./level-generator";
+import seedrandom from "seedrandom";
 
 const canvas: HTMLCanvasElement = document.getElementById(
   "canvas"
@@ -15,6 +17,40 @@ function resize() {
   canvas.height = window.innerHeight;
   gl.viewport(0, 0, canvas.width, canvas.height);
 }
+
+const params = new URLSearchParams(window.location.search);
+
+function setParam(param: string, value: string) {
+  const paramsTemp = new URLSearchParams(window.location.search);
+  if (value) paramsTemp.set(param, value);
+  else paramsTemp.delete(param);
+  const url =
+    window.location.origin +
+    window.location.pathname +
+    "?" +
+    paramsTemp.toString();
+  window.history.pushState(
+    {
+      path: url,
+    },
+    "",
+    url
+  );
+}
+
+const seedInput = document.getElementById("seed")! as HTMLInputElement;
+seedInput.value = params.get("seed") ?? "";
+seedInput.addEventListener("input", (e) => {
+  setParam("seed", seedInput.value);
+});
+
+const difficultyInput = document.getElementById(
+  "difficulty"
+)! as HTMLSelectElement;
+difficultyInput.value = params.get("difficulty") ?? "2";
+difficultyInput.addEventListener("change", (e) => {
+  setParam("difficulty", difficultyInput.value);
+});
 
 window.addEventListener("resize", resize);
 
@@ -235,6 +271,7 @@ function draw(
   set("1f", "hue_offset", hueOffset);
   // set("1f", "threshold", Math.sin(animationTime * 0.05) * 1096 + 1100);
   set("1f", "threshold", 4.0);
+  set("1f", "animation_frame", animationTime);
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
@@ -247,7 +284,26 @@ const debugBox = document.getElementById("debug")!;
 
 const startButton = document.getElementById("start")!;
 startButton.addEventListener("click", (e) => {
+  LEVELS.splice(0, LEVELS.length);
   info.style.display = "none";
+  const seed =
+    seedInput.value || Math.floor(Math.random() * 2 ** 52).toString();
+  setParam("seed", seed);
+  const rand = seedrandom(seed);
+  let difficulty = Number(difficultyInput.value);
+  if (isNaN(difficulty)) difficulty = 2;
+  difficulty = Math.min(Math.max(difficulty, 1), 200);
+  for (let i = 0; i < difficulty * 5; i++) {
+    const pt = findPointOnEdgeOfMandelbrot(rand);
+    const zoom = 1 / (2 + Math.pow(i, 1.5) * (1.5 + rand()));
+    LEVELS.push({
+      bottomLeft: { x: pt.x - zoom, y: pt.y - zoom },
+      topRight: { x: pt.x + zoom, y: pt.y + zoom },
+      params: { x: 0, y: 0 },
+      fractalIndex: 1,
+    });
+  }
+  loadLevel(LEVELS[0]);
 });
 
 let hueOffset = -0.1;
