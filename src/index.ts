@@ -4,6 +4,7 @@ import {
   makeUniformSetter,
 } from "./gl-lib";
 import { Level, LEVELS } from "./levels";
+import { loopSound, playSound } from "./sound";
 
 const canvas: HTMLCanvasElement = document.getElementById(
   "canvas"
@@ -59,7 +60,13 @@ canvas.addEventListener("mousemove", (e) => {
   mousePos = { x: e.clientX, y: e.clientY };
 });
 
+let isMusicPlayingYet = false;
+
 canvas.addEventListener("mousedown", (e) => {
+  if (!isMusicPlayingYet) {
+    isMusicPlayingYet = true;
+    loopSound("background-music.ogg", 0.5, 0.04);
+  }
   mouseButtonsPressed.set(e.button, true);
 });
 
@@ -134,6 +141,8 @@ enum ScrollType {
 }
 
 let lastScrollPositive = ScrollType.None;
+
+let scrollUntilNoise = 0;
 
 canvas.addEventListener("wheel", (e) => {
   lastScrollPositive = e.deltaY > 0 ? ScrollType.Positive : ScrollType.Negative;
@@ -288,9 +297,11 @@ let hueOffset = -0.1;
       Math.hypot(
         targetBottomLeft.x - userBottomLeft.x,
         targetTopRight.y - userTopRight.y
-      ) < winDist
+      ) < winDist &&
+      !winAnimationRunning
     ) {
       winAnimationRunning = true;
+      playSound("level-complete.flac", 1);
       levelsComplete.innerText =
         `${levelIndex + 1} / ${LEVELS.length}` +
         (levelIndex == LEVELS.length - 1 ? " | YOU WIN!" : "");
@@ -435,6 +446,16 @@ let hueOffset = -0.1;
     if (userTopRight.x - userBottomLeft.x < 0.0000001) {
       factor = Math.min(factor, 0);
     }
+
+    if (scrollUntilNoise < 0) {
+      scrollUntilNoise = 1;
+      playSound(
+        "scroll-noise.flac",
+        0.8 + 0.06 * Math.log2(1 / (userTopRight.x - userBottomLeft.x)),
+        0.7
+      );
+    }
+    scrollUntilNoise -= Math.abs(factor) * 3;
 
     let originX = lerp(userBottomLeft.x, userTopRight.x, 0.5);
     let originY = lerp(userBottomLeft.y, userTopRight.y, 0.5);
