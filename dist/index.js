@@ -1493,6 +1493,11 @@
   var levelsComplete = document.getElementById("levels-complete");
   var info = document.getElementById("info");
   var debugBox = document.getElementById("debug");
+  var playAgainButton = document.getElementById("play-again");
+  playAgainButton.addEventListener("click", (e) => {
+    console.log("clicked!!!!!!!");
+    window.location.reload();
+  });
   var startButton = document.getElementById("start");
   startButton.addEventListener("click", (e) => {
     LEVELS.splice(0, LEVELS.length);
@@ -1565,6 +1570,9 @@
         winAnimationRunning = true;
         playSound("level-complete.flac", 1);
         levelsComplete.innerText = `${levelIndex + 1} / ${LEVELS.length}` + (levelIndex == LEVELS.length - 1 ? " | YOU WIN!" : "");
+        if (levelIndex == LEVELS.length - 1) {
+          playAgainButton.style.display = "block";
+        }
       }
       if (winAnimationRunning) {
         winAnimationFrame++;
@@ -1584,7 +1592,11 @@
       ).toString();
       if (winAnimationFrame == 120) {
         levelIndex++;
-        loadLevel(LEVELS[levelIndex]);
+        if (LEVELS[levelIndex]) {
+          loadLevel(LEVELS[levelIndex]);
+        } else {
+          winAnimationRunning = false;
+        }
         userBottomLeft = { x: -2, y: -2 };
         userTopRight = { x: 2, y: 2 };
         userParams = { x: 0.2, y: -0.6 };

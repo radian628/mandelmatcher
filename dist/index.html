@@ -33,16 +33,16 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
+    }
 
-      button {
-        font-size: 200%;
-        padding: 20px;
-        background-color: black;
-        color: white;
-        border: 1px solid white;
-        margin-bottom: 20px;
-        cursor: pointer;
-      }
+    button {
+      font-size: 200%;
+      padding: 20px;
+      background-color: black;
+      color: white;
+      border: 1px solid white;
+      margin-bottom: 20px;
+      cursor: pointer;
     }
 
     #match-found {
@@ -63,6 +63,14 @@
       font-size: 4vw;
       display: flex;
       justify-content: center;
+    }
+
+    #play-again {
+      margin: auto;
+      margin-top: 20px;
+      font-size: 2vw;
+      background-color: black;
+      pointer-events: all;
     }
 
     #debug {
@@ -112,6 +120,7 @@
   <div id="match-found" style="opacity: 0">
     MATCH FOUND
     <div id="levels-complete">0/5</div>
+    <button id="play-again" style="display: none">Play Again</button>
   </div>
   <div id="debug" style="display: none"></div>
   <script type="module" src="index.js"></script>
